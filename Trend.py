@@ -372,11 +372,27 @@ def Excel(yyyy, mm, dd):
         wb.save(file_name)
     
     else:
+        date_data_list = []
         wb = load_workbook(file_name)
-        ws = wb.active
-        ws.title = "台股趨勢"
-        ws.append(stock_data)
-        wb.save(file_name)
+        ws = wb.get_sheet_by_name("台股趨勢")
+        nrow = ws.max_row
+        for i in range(2, nrow+1):
+            date_data_list.append(ws.cell(row=i, column=1).value)
+        # 檢查日期是否存在
+        if date in date_data_list:
+            choice = input("該日期資料已存在，確認是否覆蓋？(Y/N): ")
+            if choice == "Y" or choice =="y":
+                change_row = date_data_list.index(date)
+                wsw = wb.active
+                wsw.title = "台股趨勢"
+                for i in range(len(stock_data)):
+                    wsw.cell(row=change_row+2, column=i+1).value = stock_data[i]
+                wb.save(file_name)
+        else:
+            wsw = wb.active
+            wsw.title = "台股趨勢"
+            wsw.append(stock_data)
+            wb.save(file_name)
         
 # Menu
 def Menu():
