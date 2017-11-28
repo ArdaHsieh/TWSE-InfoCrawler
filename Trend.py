@@ -1,12 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-Spyder Editor
+Created on Tue Nov 28 2017
 
-This is a temporary script file.
+@author: I-Ta Hsieh(Arda)
 """
 
-import requests, json, os
+import requests, json, os, time, datetime
 from openpyxl import Workbook, load_workbook
+from openpyxl.styles import Font, colors
 from bs4 import BeautifulSoup
 
 TWSE_Price = 0        # 台股大盤指數
@@ -23,7 +24,7 @@ SP500_UDR = 0         # S&P 500指數漲跌幅
 SOX_Price = 0         # 費城半導體指數
 SOX_UDR = 0           # 費城半導體指數漲跌幅
 USDEx = 0             # 美金兌台幣匯率
-USDEx_UD = 0         # 美金兌台幣匯率漲跌
+USDEx_UD = 0          # 美金兌台幣匯率漲跌
 FU = 0                # 台股期貨外資留倉口數
 DueFu = 0             # 期貨結算日外資留倉口數
 TM_5_Bull = 0         # 台股期貨前5大交易人近月留倉部位
@@ -346,7 +347,66 @@ def Disp(yyyy, mm, dd):
     print("散戶多空比: {}%".format(RIBS_Ratio))
     print("----------------------------------------------------\n")
 
-
+# Excel漲跌上色
+def Excel_color(Row_num):
+    file_name = "Stock Analysis.xlsx"
+    ftRed = Font(color = colors.RED)
+    ftGreen = Font(color = colors.GREEN)
+    
+    wb = load_workbook(file_name)
+    ws = wb.active
+    
+    Info_TWSE_Price = ws.cell(row=Row_num, column=2)
+    Info_TWSE_UD = ws.cell(row=Row_num, column=3)
+    Info_TWSE_UDR = ws.cell(row=Row_num, column=4)
+    Info_INDU_Price = ws.cell(row=Row_num, column=7)
+    Info_INDU_UDR = ws.cell(row=Row_num, column=8)
+    Info_NAS_Price = ws.cell(row=Row_num, column=9)
+    Info_NAS_UDR = ws.cell(row=Row_num, column=10)
+    Info_SP500_Price = ws.cell(row=Row_num, column=11)
+    Info_SP500_UDR = ws.cell(row=Row_num, column=12)
+    Info_SOX_Price = ws.cell(row=Row_num, column=13)
+    Info_SOX_UDR = ws.cell(row=Row_num, column=14)
+    
+    # 台股上色
+    if float(Info_TWSE_UD.value) > 0:
+        Info_TWSE_Price.font = ftRed
+        Info_TWSE_UD.font = ftRed
+        Info_TWSE_UDR.font = ftRed
+    elif float(Info_TWSE_UD.value) < 0:
+        Info_TWSE_Price.font = ftGreen
+        Info_TWSE_UD.font = ftGreen
+        Info_TWSE_UDR.font = ftGreen
+    
+    # 美股上色
+    if float(Info_INDU_UDR.value[0:4]) > 0:
+        Info_INDU_Price.font = ftRed
+        Info_INDU_UDR.font = ftRed
+    elif float(Info_INDU_UDR.value[0:4]) < 0:
+        Info_INDU_Price.font = ftGreen
+        Info_INDU_UDR.font = ftGreen
+    if float(Info_NAS_UDR.value[0:4]) > 0:
+        Info_NAS_Price.font = ftRed
+        Info_NAS_UDR.font = ftRed
+    elif float(Info_NAS_UDR.value[0:4]) < 0:
+        Info_NAS_Price.font = ftGreen
+        Info_NAS_UDR.font = ftGreen
+    if float(Info_SP500_UDR.value[0:4]) > 0:
+        Info_SP500_Price.font = ftRed
+        Info_SP500_UDR.font = ftRed
+    elif float(Info_SP500_UDR.value[0:4]) < 0:
+        Info_SP500_Price.font = ftGreen
+        Info_SP500_UDR.font = ftGreen
+    if float(Info_SOX_UDR.value[0:4]) > 0:
+        Info_SOX_Price.font = ftRed
+        Info_SOX_UDR.font = ftRed
+    elif float(Info_SOX_UDR.value[0:4]) < 0:
+        Info_SOX_Price.font = ftGreen
+        Info_SOX_UDR.font = ftGreen
+    
+    wb.save(file_name)
+    
+    
 # 存到EXCEL檔中
 def Excel(yyyy, mm, dd):
     date = yyyy + "/" + mm + "/" + dd
@@ -370,7 +430,8 @@ def Excel(yyyy, mm, dd):
         ws.append(header)
         ws.append(stock_data)
         wb.save(file_name)
-    
+        Excel_color(2)
+        
     else:
         date_data_list = []
         wb = load_workbook(file_name)
@@ -388,22 +449,22 @@ def Excel(yyyy, mm, dd):
                 for i in range(len(stock_data)):
                     wsw.cell(row=change_row+2, column=i+1).value = stock_data[i]
                 wb.save(file_name)
+                Excel_color(change_row+2)
         else:
             wsw = wb.active
             wsw.title = "台股趨勢"
             wsw.append(stock_data)
             wb.save(file_name)
+            Excel_color(nrow)
         
 # Menu
 def Menu():
+    print(" ")
     print("S: 依日期查詢")
-    #print("T: 新增期貨結算日資訊")
+    print("T: 編輯期貨結算日資訊")
     print("E: 離開")
         
 def main():
-    big_m = ["01", "03", "05", "07", "08", "10", "12"]
-    small_m = ["04", "06", "09", "11"]
-    
     print("      台股趨勢分析統計資料      ")
     print("-------------------------------")
     
@@ -421,37 +482,29 @@ def main():
                 dd = "0" + dd
             
             # 判斷日期是否有效
-            if len(yyyy) !=4 or int(mm) > 12 or int(mm) < 1:
+            try:
+                time.strptime(yyyy + " " + mm + " " + dd, "%Y %m %d")
+            except:
                 print("日期錯誤\n")
                 continue
-            elif mm in big_m and (int(dd) < 1 or int(dd) > 31):
-                print("日期錯誤\n")
-                continue
-            elif mm in small_m and (int(dd) < 1 or int(dd) > 30):
-                print("日期錯誤\n")
-                continue
-            elif mm == "02" and int(yyyy)%4 != 0 and (int(dd) < 1 or int(dd) > 28):
-                print("日期錯誤\n")
-                continue
-            elif mm == "02" and int(yyyy)%4 == 0 and int(yyyy)%100 == 0 and int(yyyy)%400 != 0 and (int(dd) < 1 or int(dd) > 28):
-                print("日期錯誤\n")
-                continue
-            elif mm == "02" and int(yyyy)%4 == 0 and int(yyyy)%100 != 0 and (int(dd) < 1 or int(dd) > 29): 
-                print("日期錯誤\n")
-                continue
-            elif mm == "02" and int(yyyy)%4 == 0 and int(yyyy)%100 == 0 and int(yyyy)%400 == 0 and (int(dd) < 1 or int(dd) > 29):
-                print("日期錯誤\n")
-                continue
+            
+            # 判斷當日有無開盤交易
+            YNMarket, stat = Y_N_Market(yyyy, mm, dd)
+            if YNMarket == 1:
+                print("-------------------------------")
+                if stat[0] == "很":
+                    print("{}/{}/{} 非交易日".format(yyyy, mm, dd))
+                else:
+                    print(stat)
+                print("-------------------------------\n")
             else:
-                # 判斷當日有無開盤交易
-                YNMarket, stat = Y_N_Market(yyyy, mm, dd)
-                if YNMarket == 1:
-                    print("-------------------------------")
-                    if stat[0] == "很":
-                        print("{}/{}/{} 非交易日".format(yyyy, mm, dd))
-                    else:
-                        print(stat)
-                    print("-------------------------------\n")
+                timenow = str(datetime.datetime.now())
+                if timenow[0:4] == yyyy and timenow[5:7] == mm and timenow[8:10] == dd:
+                    if int(timenow[11:13]) < 23:
+                        print("美股還沒開盤，尚無法查詢")
+                    print("美股交易時間")
+                    print("冬令時間10:30PM - 05:00AM")
+                    print("夏令時間09:30PM - 04:00AM")
                 else:
                     TxDueData(yyyy, mm, dd)
                     TWSE(yyyy, mm, dd)
@@ -467,6 +520,9 @@ def main():
                     choiceSave = input("\n是否儲存資料？(Y/N): ")
                     if choiceSave == "Y" or choiceSave == "y":
                         Excel(yyyy, mm, dd)
+        elif choiceMenu == "T" or choiceMenu == "t":
+            import TX_Editor
+            TX_Editor.Main()
         else:
             break
 
