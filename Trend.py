@@ -75,19 +75,25 @@ def TWSE(yyyy, mm, dd):
     
     TWSE_Price = string_to_nums(TWSE_data2[1][1])    # 加權指數
     TWSE_UD = string_to_nums(TWSE_data2[1][3])       # 漲跌
-    TWSE_UDR = string_to_nums(TWSE_data2[1][4])      # 漲跌幅
+    try:                                             # 漲跌幅
+        TWSE_UDR = string_to_nums(TWSE_data2[1][4])      
+    except:
+        TWSE_UDR = 0.0
     if TWSE_UDR < 0:
         TWSE_UD = -TWSE_UD
     else:
         TWSE_UD = TWSE_UD
     
     # 大盤成交量
+    Voldate = str(int(yyyy)-1911) + "/" + mm + "/" + dd
     url_TWSE_Vol = "http://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date=" + yyyy + mm + dd
     html_TWSE_Vol = get_url(url_TWSE_Vol)
     TWSE_Vol_data1 = json.loads(html_TWSE_Vol)
     TWSE_Vol_data2 = TWSE_Vol_data1['data']
-    
-    TWSE_Vol = string_to_nums(TWSE_Vol_data2[-1][2])/100000000    # 成交量
+    for Voldata in TWSE_Vol_data2:
+        if Voldata[0] == Voldate:
+            TWSE_Vol = string_to_nums(Voldata[2])/100000000    # 成交量
+            break
     TWSE_Vol = "%.2f" % TWSE_Vol
     
     # 外資買賣超
