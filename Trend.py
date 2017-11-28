@@ -82,7 +82,7 @@ def TWSE(yyyy, mm, dd):
         TWSE_UD = TWSE_UD
     
     # 大盤成交量
-    url_TWSE_Vol = "http://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date="
+    url_TWSE_Vol = "http://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date=" + yyyy + mm + dd
     html_TWSE_Vol = get_url(url_TWSE_Vol)
     TWSE_Vol_data1 = json.loads(html_TWSE_Vol)
     TWSE_Vol_data2 = TWSE_Vol_data1['data']
@@ -91,7 +91,7 @@ def TWSE(yyyy, mm, dd):
     TWSE_Vol = "%.2f" % TWSE_Vol
     
     # 外資買賣超
-    url_TWSE_Foreign = "http://www.twse.com.tw/fund/BFI82U?response=json&dayDate="
+    url_TWSE_Foreign = "http://www.twse.com.tw/fund/BFI82U?response=json&dayDate=" + yyyy + mm + dd
     html_Foreign = get_url(url_TWSE_Foreign)
     TWSE_Foreign_data1 = json.loads(html_Foreign)
     TWSE_Foreign_data2 = TWSE_Foreign_data1['data']
@@ -379,30 +379,30 @@ def Excel_color(Row_num):
         Info_TWSE_UDR.font = ftGreen
     
     # 美股上色
-    if float(Info_INDU_UDR.value[0:4]) > 0:
-        Info_INDU_Price.font = ftRed
-        Info_INDU_UDR.font = ftRed
-    elif float(Info_INDU_UDR.value[0:4]) < 0:
+    if Info_INDU_UDR.value[0] == "-":
         Info_INDU_Price.font = ftGreen
         Info_INDU_UDR.font = ftGreen
-    if float(Info_NAS_UDR.value[0:4]) > 0:
-        Info_NAS_Price.font = ftRed
-        Info_NAS_UDR.font = ftRed
-    elif float(Info_NAS_UDR.value[0:4]) < 0:
+    else:
+        Info_INDU_Price.font = ftRed
+        Info_INDU_UDR.font = ftRed
+    if Info_NAS_UDR.value[0] == "-":
         Info_NAS_Price.font = ftGreen
         Info_NAS_UDR.font = ftGreen
-    if float(Info_SP500_UDR.value[0:4]) > 0:
-        Info_SP500_Price.font = ftRed
-        Info_SP500_UDR.font = ftRed
-    elif float(Info_SP500_UDR.value[0:4]) < 0:
+    else:
+        Info_NAS_Price.font = ftRed
+        Info_NAS_UDR.font = ftRed
+    if Info_SP500_UDR.value[0] == "-":
         Info_SP500_Price.font = ftGreen
         Info_SP500_UDR.font = ftGreen
-    if float(Info_SOX_UDR.value[0:4]) > 0:
-        Info_SOX_Price.font = ftRed
-        Info_SOX_UDR.font = ftRed
-    elif float(Info_SOX_UDR.value[0:4]) < 0:
+    else:
+        Info_SP500_Price.font = ftRed
+        Info_SP500_UDR.font = ftRed
+    if Info_SOX_UDR.value[0] == "-":
         Info_SOX_Price.font = ftGreen
         Info_SOX_UDR.font = ftGreen
+    else:
+        Info_SOX_Price.font = ftRed
+        Info_SOX_UDR.font = ftRed
     
     wb.save(file_name)
     
