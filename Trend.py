@@ -151,7 +151,7 @@ def USD_NTD(yyyy, mm, dd):
     data2 = data1[8].find_all('td', {'valign':'top'})
     data3 = data2[1].find_all('tr')
     
-    USD_data1 =  data3[14].find_all('td')
+    USD_data1 =  data3[17].find_all('td')
     USDEx = string_to_nums(USD_data1[1].text)
     USDEx_UD = string_to_nums(USD_data1[2].text)
 
