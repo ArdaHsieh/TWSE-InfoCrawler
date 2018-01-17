@@ -8,7 +8,7 @@ Created on Thu Nov 23 2017
 
 import requests, json, os, datetime, time
 from openpyxl import Workbook, load_workbook
-from openpyxl.styles import Fill, PatternFill, colors
+from openpyxl.styles import PatternFill, Color
 
 
 day_pre = []               # 前2個交易日
@@ -170,7 +170,7 @@ def Continue(NBuy, NSell, Buy_1, Sell_1, Buy_2, Sell_2) :
         if stock in Sell_1:
             conti_Sell1.append(stock)
     for stock in conti_Sell1:
-        if stock in Buy_2:
+        if stock in Sell_2:
             conti_Sell2.append(stock)
             
     return conti_Buy2, conti_Sell2
@@ -198,14 +198,14 @@ def FO_IT_Same_Diff(NBuy1, NSell1, NBuy2, NSell2) :
     for stock in NBuy30:
         if stock in NSell2:
             Buy_Diff.append(stock)
-    
-    for stock in NBuy30:
-        if stock in NBuy2:
+        elif stock in NBuy2:
             Buy_Same.append(stock)
             
     for stock in NSell30:
         if stock in NSell2:
             Sell_Same.append(stock)
+        elif stock in NBuy2:
+            Sell_Diff.append(stock)
             
     return Buy_Same, Sell_Same, Buy_Diff, Sell_Diff    
     
@@ -230,7 +230,7 @@ def ITSE_Info(yyyy, mm, dd):
 
 # 外資
 def FOSE(yyyy,mm,dd):
-    global day_pre
+    #global day_pre
     global FO_SE_NBuy30, FO_SE_NSell30, FO_SE_NBuy, FO_SE_NSell, FO_SE_ContiNBuy, FO_SE_ContiNSell
     
     data = []
@@ -248,7 +248,7 @@ def FOSE(yyyy,mm,dd):
     
 # 投信
 def ITSE(yyyy,mm,dd):
-    global day_pre
+    #global day_pre
     global IT_SE_NBuy30, IT_SE_NSell30, IT_SE_NBuy, IT_SE_NSell, IT_SE_ContiNBuy, IT_SE_ContiNSell
     
     data = []
@@ -283,9 +283,9 @@ def Excel(filename, sheet_name, Net30, Net30_Same, Net30_Diff, Conti):
         ws.cell(row=i+1, column=2).value = Net30[i][1]
         ws.cell(row=i+1, column=3).value = Net30[i][2]
        
-    red_fill = PatternFill(patternType='solid', fgColor=colors.RED)
-    blue_fill = PatternFill(patternType='solid', fgColor=colors.BLUE)
-    green_fill = PatternFill(patternType='solid', fgColor=colors.GREEN)
+    red_fill = PatternFill(patternType='solid', fgColor=Color('FF8888'))
+    blue_fill = PatternFill(patternType='solid', fgColor=Color('33CCFF'))
+    green_fill = PatternFill(patternType='solid', fgColor=Color('66FF66'))
     
     for stock in Conti:
         for i in range(len(Net30)):
@@ -301,12 +301,17 @@ def Excel(filename, sheet_name, Net30, Net30_Same, Net30_Diff, Conti):
         for i in range(len(Net30)):
             if Net30[i][1] == stock:
                 ws.cell(row=i+1, column=2).fill = green_fill
-                #break                
+    
+    ws.cell(row=1, column=6).value = "連續"
+    ws.cell(row=1, column=7).value = "同向"
+    ws.cell(row=1, column=8).value = "反向"
+    ws.cell(row=1, column=6).fill = blue_fill
+    ws.cell(row=1, column=7).fill = red_fill
+    ws.cell(row=1, column=8).fill = green_fill    
     
     wb.save(filename)
     
-    
-    
+        
 # Menu
 def Menu():
     print("S: 依日期查詢")
