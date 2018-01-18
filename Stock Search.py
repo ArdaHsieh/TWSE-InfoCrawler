@@ -6,7 +6,10 @@ Created on Thu Nov 23 2017
 """
 
 
-import requests, json, os, datetime, time
+import requests
+import json
+import os
+import datetime, time
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import PatternFill, Color
 
@@ -302,7 +305,7 @@ def Excel(filename, sheet_name, Net30, Net30_Same, Net30_Diff, Conti):
             if Net30[i][1] == stock:
                 ws.cell(row=i+1, column=2).fill = green_fill
     
-    ws.cell(row=1, column=6).value = "連續"
+    ws.cell(row=1, column=6).value = "連續3天"
     ws.cell(row=1, column=7).value = "同向"
     ws.cell(row=1, column=8).value = "反向"
     ws.cell(row=1, column=6).fill = blue_fill

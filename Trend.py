@@ -5,10 +5,14 @@ Created on Tue Nov 28 2017
 @author: I-Ta Hsieh(Arda)
 """
 
-import requests, json, os, time, datetime
+import requests
+import json
+from bs4 import BeautifulSoup
+import os
+import time, datetime
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, colors
-from bs4 import BeautifulSoup
+
 
 TWSE_Price = 0        # 台股大盤指數
 TWSE_UD = 0           # 台股大盤漲跌
@@ -461,7 +465,7 @@ def Excel(yyyy, mm, dd):
             wsw.title = "台股趨勢"
             wsw.append(stock_data)
             wb.save(file_name)
-            Excel_color(nrow)
+            Excel_color(nrow+1)
         
 # Menu
 def Menu():
@@ -504,14 +508,7 @@ def main():
                     print(stat)
                 print("-------------------------------\n")
             else:
-                timenow = str(datetime.datetime.now())
-                if timenow[0:4] == yyyy and timenow[5:7] == mm and timenow[8:10] == dd:
-                    if int(timenow[11:13]) < 23:
-                        print("美股還沒開盤，尚無法查詢")
-                    print("美股交易時間")
-                    print("冬令時間10:30PM - 05:00AM")
-                    print("夏令時間09:30PM - 04:00AM")
-                else:
+                try:
                     TxDueData(yyyy, mm, dd)
                     TWSE(yyyy, mm, dd)
                     USASEx(yyyy, mm, dd)
@@ -522,10 +519,23 @@ def main():
                     TWOP(yyyy, mm, dd)
                     TWPCR(yyyy, mm, dd)
                     Disp(yyyy, mm, dd)
+                except:
+                    print("當日美股尚未收盤，明日請記得更新美股及新台幣匯率資訊")
+                    TxDueData(yyyy, mm, dd)
+                    TWSE(yyyy, mm, dd)
+                    #USASEx(yyyy, mm, dd)
+                    #USD_NTD(yyyy, mm, dd)
+                    TWFUOC(yyyy, mm, dd)
+                    TWF_5_10_UOC(yyyy, mm, dd)
+                    TWMTX(yyyy, mm, dd)
+                    TWOP(yyyy, mm, dd)
+                    TWPCR(yyyy, mm, dd)
+                    Disp(yyyy, mm, dd)
                     
-                    choiceSave = input("\n是否儲存資料？(Y/N): ")
-                    if choiceSave == "Y" or choiceSave == "y":
-                        Excel(yyyy, mm, dd)
+                    
+                choiceSave = input("\n是否儲存資料？(Y/N): ")
+                if choiceSave == "Y" or choiceSave == "y":
+                    Excel(yyyy, mm, dd)
         elif choiceMenu == "T" or choiceMenu == "t":
             import TX_Editor
             TX_Editor.Main()
