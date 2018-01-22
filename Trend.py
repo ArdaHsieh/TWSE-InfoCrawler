@@ -471,10 +471,10 @@ def Excel(yyyy, mm, dd):
 def Menu():
     print(" ")
     print("S: 依日期查詢")
-    print("T: 編輯期貨結算日資訊")
     print("E: 離開")
         
 def main():
+    global INDU_Price, INDU_UDR, NAS_Price, NAS_UDR, SP500_Price, SP500_UDR, SOX_Price, SOX_UDR, USDEx, USDEx_UD
     print("      台股趨勢分析統計資料      ")
     print("-------------------------------")
     
@@ -509,36 +509,34 @@ def main():
                 print("-------------------------------\n")
             else:
                 try:
-                    TxDueData(yyyy, mm, dd)
-                    TWSE(yyyy, mm, dd)
                     USASEx(yyyy, mm, dd)
                     USD_NTD(yyyy, mm, dd)
-                    TWFUOC(yyyy, mm, dd)
-                    TWF_5_10_UOC(yyyy, mm, dd)
-                    TWMTX(yyyy, mm, dd)
-                    TWOP(yyyy, mm, dd)
-                    TWPCR(yyyy, mm, dd)
-                    Disp(yyyy, mm, dd)
                 except:
                     print("當日美股尚未收盤，明日請記得更新美股及新台幣匯率資訊")
-                    TxDueData(yyyy, mm, dd)
-                    TWSE(yyyy, mm, dd)
-                    #USASEx(yyyy, mm, dd)
-                    #USD_NTD(yyyy, mm, dd)
-                    TWFUOC(yyyy, mm, dd)
-                    TWF_5_10_UOC(yyyy, mm, dd)
-                    TWMTX(yyyy, mm, dd)
-                    TWOP(yyyy, mm, dd)
-                    TWPCR(yyyy, mm, dd)
-                    Disp(yyyy, mm, dd)
+                    INDU_Price = 0        # 道瓊工業指數
+                    INDU_UDR = 0          # 道瓊工業指數漲跌幅
+                    NAS_Price = 0         # Nasdaq指數
+                    NAS_UDR = 0           # Nasdaq指數漲跌幅
+                    SP500_Price = 0       # S&P 500指數
+                    SP500_UDR = 0         # S&P 500指數漲跌幅
+                    SOX_Price = 0         # 費城半導體指數
+                    SOX_UDR = 0           # 費城半導體指數漲跌幅
+                    USDEx = 0             # 美金兌台幣匯率
+                    USDEx_UD = 0          # 美金兌台幣匯率漲跌
+                    
+                TxDueData(yyyy, mm, dd)
+                TWSE(yyyy, mm, dd)
+                TWFUOC(yyyy, mm, dd)
+                TWF_5_10_UOC(yyyy, mm, dd)
+                TWMTX(yyyy, mm, dd)
+                TWOP(yyyy, mm, dd)
+                TWPCR(yyyy, mm, dd)
+                Disp(yyyy, mm, dd)
                     
                     
                 choiceSave = input("\n是否儲存資料？(Y/N): ")
                 if choiceSave == "Y" or choiceSave == "y":
                     Excel(yyyy, mm, dd)
-        elif choiceMenu == "T" or choiceMenu == "t":
-            import TX_Editor
-            TX_Editor.Main()
         else:
             break
 

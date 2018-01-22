@@ -15,9 +15,10 @@ from openpyxl.styles import PatternFill, Color
 
 
 day_pre = []               # 前2個交易日
+Nth = 0                    # N檔股票    
 
-FO_SE_NBuy30 = []          # 外資買超前30名(上市)
-FO_SE_NSell30 = []         # 外資賣超前30名(上市)
+FO_SE_NBuyNth = []         # 外資買超前30名(上市)
+FO_SE_NSellNth = []        # 外資賣超前30名(上市)
 FO_SE_NBuy = []            # 外資買超(上市)
 FO_SE_NSell = []           # 外資賣超(上市)
 FO_SE_ContiNBuy = []       # 外資連續買超(上市)
@@ -27,8 +28,8 @@ FO_same_IT_SE_NSell = []   # 外資賣超投信相同(上市)
 FO_diff_IT_SE_NBuy = []    # 外資買超投信相反(上市)
 FO_diff_IT_SE_NSell = []   # 外資賣超投信相反(上市)
 
-IT_SE_NBuy30 = []          # 投信買超前30名(上市)
-IT_SE_NSell30 = []         # 投信賣超前30名(上市)
+IT_SE_NBuyNth = []         # 投信買超前30名(上市)
+IT_SE_NSellNth = []        # 投信賣超前30名(上市)
 IT_SE_NBuy = []            # 投信買超(上市)
 IT_SE_NSell = []           # 投信賣超(上市)
 IT_SE_ContiNBuy = []       # 投信連續買超(上市)
@@ -108,12 +109,12 @@ def name_filter(name):
             
 
 # 當日買賣超前30名資訊(股號/股名/買賣超股數)
-def Net_Buy_Sell_30(Tunple_data):
+def Net_Buy_Sell_Nth(Tunple_data):
     NBuy = []
     NSell = []
     
     for data in Tunple_data:
-        if string_to_nums(data[5]) > 0 and len(NBuy) < 30:
+        if string_to_nums(data[5]) > 0 and len(NBuy) < Nth:
             if len(name_filter(data[2])) <= 4 or ("KY" in name_filter(data[2])):
                 stock_info = [data[1], data[2], data[5]]
                 NBuy.append(stock_info)
@@ -121,7 +122,7 @@ def Net_Buy_Sell_30(Tunple_data):
             break
     
     for data in Tunple_data:
-        if string_to_nums(data[5]) < 0 and len(NSell) < 30:
+        if string_to_nums(data[5]) < 0 and len(NSell) < Nth:
             if len(name_filter(data[2])) <= 4 or ("KY" in name_filter(data[2])):
                 stock_info = [data[1], data[2], data[5]]
                 NSell.append(stock_info)
@@ -145,31 +146,31 @@ def Net_Buy_Sell_name(Tunple_data):
 
 # 連續買賣超
 def Continue(NBuy, NSell, Buy_1, Sell_1, Buy_2, Sell_2) :
-    NBuy30 = []
-    NSell30 = []
+    NBuyNth = []
+    NSellNth = []
     conti_Buy1 = []
     conti_Buy2 = []
     conti_Sell1 = []
     conti_Sell2 = []
     
     for stock in NBuy:
-        if len(NBuy30) < 30:
+        if len(NBuyNth) < Nth:
             if len(name_filter(stock)) <= 4 or ("KY" in name_filter(stock)):
-                NBuy30.append(stock)
+                NBuyNth.append(stock)
     
     for stock in NSell:
-        if len(NSell30) < 30:
+        if len(NSellNth) < Nth:
             if len(name_filter(stock)) <= 4 or ("KY" in name_filter(stock)):
-                NSell30.append(stock)
+                NSellNth.append(stock)
     
-    for stock in NBuy30:
+    for stock in NBuyNth:
         if stock in Buy_1:
             conti_Buy1.append(stock)
     for stock in conti_Buy1:
         if stock in Buy_2:
             conti_Buy2.append(stock)
             
-    for stock in NSell30:
+    for stock in NSellNth:
         if stock in Sell_1:
             conti_Sell1.append(stock)
     for stock in conti_Sell1:
@@ -185,26 +186,26 @@ def FO_IT_Same_Diff(NBuy1, NSell1, NBuy2, NSell2) :
     Sell_Same = []
     Buy_Diff = []
     Sell_Diff = []
-    NBuy30 = []
-    NSell30 = []
+    NBuyNth = []
+    NSellNth = []
     
     for stock in NBuy1:
-        if len(NBuy30) < 30:
+        if len(NBuyNth) < Nth:
             if len(name_filter(stock)) <= 4 or ("KY" in name_filter(stock)):
-                NBuy30.append(stock)
+                NBuyNth.append(stock)
     
     for stock in NSell1:
-        if len(NSell30) < 30:
+        if len(NSellNth) < Nth:
             if len(name_filter(stock)) <= 4 or ("KY" in name_filter(stock)):
-                NSell30.append(stock)
+                NSellNth.append(stock)
     
-    for stock in NBuy30:
+    for stock in NBuyNth:
         if stock in NSell2:
             Buy_Diff.append(stock)
         elif stock in NBuy2:
             Buy_Same.append(stock)
             
-    for stock in NSell30:
+    for stock in NSellNth:
         if stock in NSell2:
             Sell_Same.append(stock)
         elif stock in NBuy2:
@@ -234,7 +235,7 @@ def ITSE_Info(yyyy, mm, dd):
 # 外資
 def FOSE(yyyy,mm,dd):
     #global day_pre
-    global FO_SE_NBuy30, FO_SE_NSell30, FO_SE_NBuy, FO_SE_NSell, FO_SE_ContiNBuy, FO_SE_ContiNSell
+    global FO_SE_NBuyNth, FO_SE_NSellNth, FO_SE_NBuy, FO_SE_NSell, FO_SE_ContiNBuy, FO_SE_ContiNSell
     
     data = []
     data.append(FOSE_Info(yyyy, mm, dd))
@@ -246,13 +247,13 @@ def FOSE(yyyy,mm,dd):
     Buy_2, Sell_2 = Net_Buy_Sell_name(data[2])
     
     FO_SE_ContiNBuy, FO_SE_ContiNSell = Continue(FO_SE_NBuy, FO_SE_NSell, Buy_1, Sell_1, Buy_2, Sell_2)
-    FO_SE_NBuy30, FO_SE_NSell30 = Net_Buy_Sell_30(data[0]) 
+    FO_SE_NBuyNth, FO_SE_NSellNth = Net_Buy_Sell_Nth(data[0]) 
     
     
 # 投信
 def ITSE(yyyy,mm,dd):
     #global day_pre
-    global IT_SE_NBuy30, IT_SE_NSell30, IT_SE_NBuy, IT_SE_NSell, IT_SE_ContiNBuy, IT_SE_ContiNSell
+    global IT_SE_NBuyNth, IT_SE_NSellNth, IT_SE_NBuy, IT_SE_NSell, IT_SE_ContiNBuy, IT_SE_ContiNSell
     
     data = []
     data.append(ITSE_Info(yyyy, mm, dd))
@@ -264,7 +265,7 @@ def ITSE(yyyy,mm,dd):
     Buy_2, Sell_2 = Net_Buy_Sell_name(data[2])
     
     IT_SE_ContiNBuy, IT_SE_ContiNSell = Continue(IT_SE_NBuy, IT_SE_NSell, Buy_1, Sell_1, Buy_2, Sell_2)
-    IT_SE_NBuy30, IT_SE_NSell30 = Net_Buy_Sell_30(data[0])  
+    IT_SE_NBuyNth, IT_SE_NSellNth = Net_Buy_Sell_Nth(data[0])  
     
 
 # 外資投信同步反向
@@ -277,32 +278,32 @@ def Same_Diff_way():
     
 
 # 存到EXCEL檔中
-def Excel(filename, sheet_name, Net30, Net30_Same, Net30_Diff, Conti):
+def Excel(filename, sheet_name, NetNth, NetNth_Same, NetNth_Diff, Conti):
     wb = load_workbook(filename)
     ws = wb.get_sheet_by_name(sheet_name)
 
-    for i in range(len(Net30)):
-        ws.cell(row=i+1, column=1).value = Net30[i][0]
-        ws.cell(row=i+1, column=2).value = Net30[i][1]
-        ws.cell(row=i+1, column=3).value = Net30[i][2]
+    for i in range(len(NetNth)):
+        ws.cell(row=i+1, column=1).value = NetNth[i][0]
+        ws.cell(row=i+1, column=2).value = NetNth[i][1]
+        ws.cell(row=i+1, column=3).value = NetNth[i][2]
        
     red_fill = PatternFill(patternType='solid', fgColor=Color('FF8888'))
     blue_fill = PatternFill(patternType='solid', fgColor=Color('33CCFF'))
     green_fill = PatternFill(patternType='solid', fgColor=Color('66FF66'))
     
     for stock in Conti:
-        for i in range(len(Net30)):
-            if Net30[i][1] == stock:
+        for i in range(len(NetNth)):
+            if NetNth[i][1] == stock:
                 ws.cell(row=i+1, column=1).fill = blue_fill
                 #break
-    for stock in Net30_Same:
-        for i in range(len(Net30)):
-            if Net30[i][1] == stock:
+    for stock in NetNth_Same:
+        for i in range(len(NetNth)):
+            if NetNth[i][1] == stock:
                 ws.cell(row=i+1, column=2).fill = red_fill
                 #break
-    for stock in Net30_Diff:
-        for i in range(len(Net30)):
-            if Net30[i][1] == stock:
+    for stock in NetNth_Diff:
+        for i in range(len(NetNth)):
+            if NetNth[i][1] == stock:
                 ws.cell(row=i+1, column=2).fill = green_fill
     
     ws.cell(row=1, column=6).value = "連續3天"
@@ -322,6 +323,8 @@ def Menu():
     
 
 def main():
+    global Nth
+    
     print("          台股籌碼選股          ")
     print("--------------------------------")
     
@@ -366,15 +369,16 @@ def main():
                     wb.create_sheet(title = "投信買超")
                     wb.create_sheet(title = "投信賣超")
                     wb.save(filename)
-                    
+                     
+                    Nth = int(input("預記錄之買賣超股數: "))
                     pre2_day(yyyy,mm,dd)
                     FOSE(yyyy,mm,dd)
                     ITSE(yyyy,mm,dd)
                     Same_Diff_way()
-                    Excel(filename, "外資買超", FO_SE_NBuy30, FO_same_IT_SE_NBuy, FO_diff_IT_SE_NBuy, FO_SE_ContiNBuy)
-                    Excel(filename, "外資賣超", FO_SE_NSell30, FO_same_IT_SE_NSell, FO_diff_IT_SE_NSell, FO_SE_ContiNSell)
-                    Excel(filename, "投信買超", IT_SE_NBuy30, IT_same_FO_SE_NBuy, IT_diff_FO_SE_NBuy, IT_SE_ContiNBuy)
-                    Excel(filename, "投信賣超", IT_SE_NSell30, IT_same_FO_SE_NSell, IT_diff_FO_SE_NSell, IT_SE_ContiNSell)
+                    Excel(filename, "外資買超", FO_SE_NBuyNth, FO_same_IT_SE_NBuy, FO_diff_IT_SE_NBuy, FO_SE_ContiNBuy)
+                    Excel(filename, "外資賣超", FO_SE_NSellNth, FO_same_IT_SE_NSell, FO_diff_IT_SE_NSell, FO_SE_ContiNSell)
+                    Excel(filename, "投信買超", IT_SE_NBuyNth, IT_same_FO_SE_NBuy, IT_diff_FO_SE_NBuy, IT_SE_ContiNBuy)
+                    Excel(filename, "投信賣超", IT_SE_NSellNth, IT_same_FO_SE_NSell, IT_diff_FO_SE_NSell, IT_SE_ContiNSell)
 
         else:
             break
