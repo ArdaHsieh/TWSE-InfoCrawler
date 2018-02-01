@@ -39,15 +39,17 @@ IT_same_FO_SE_NSell = []   # 投信賣超外資相同(上市)
 IT_diff_FO_SE_NBuy = []    # 投信買超外資相反(上市)
 IT_diff_FO_SE_NSell = []   # 投信賣超外資相反(上市)
 
+headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'}
+
 
 def get_url(url):
-    html = requests.get(url).text.encode('utf-8-sig')
+    html = requests.get(url, headers = headers).text.encode('utf-8-sig')
     
     return html
 
 
 def post_url(url, payloads):
-    html = requests.post(url, data = payloads).text.encode('utf-8-sig')
+    html = requests.post(url, headers = headers, data = payloads).text.encode('utf-8-sig')
     
     return html
 
@@ -372,8 +374,11 @@ def main():
                      
                     Nth = int(input("預記錄之買賣超股數: "))
                     pre2_day(yyyy,mm,dd)
+                    time.sleep(5)
                     FOSE(yyyy,mm,dd)
+                    time.sleep(10)
                     ITSE(yyyy,mm,dd)
+                    time.sleep(5)
                     Same_Diff_way()
                     Excel(filename, "外資買超", FO_SE_NBuyNth, FO_same_IT_SE_NBuy, FO_diff_IT_SE_NBuy, FO_SE_ContiNBuy)
                     Excel(filename, "外資賣超", FO_SE_NSellNth, FO_same_IT_SE_NSell, FO_diff_IT_SE_NSell, FO_SE_ContiNSell)

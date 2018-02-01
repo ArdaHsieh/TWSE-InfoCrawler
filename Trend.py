@@ -9,7 +9,7 @@ import requests
 import json
 from bs4 import BeautifulSoup
 import os
-import time, datetime
+import time
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, colors
 
