@@ -61,7 +61,7 @@ def string_to_nums(text):
     for char in  text:
         if char in numbers:
             number += char
-        elif char == "\\" or char == " " or char == "(": 
+        elif char == "\\" or (char == " "  and number != "") or char == "(": 
             break
     
     return float(number)
@@ -118,28 +118,27 @@ def USASEx(yyyy, mm, dd):
     html = get_url(url)
     
     soup = BeautifulSoup(html, 'html.parser')
-    data1 = soup.find_all('tr', {'align':'center'})
-    data2 = data1[0].find_all('td', {'valign':'top'})
-    data3 = data2[3].find_all('tr')
+    table = soup.find_all('table', {'class':'marketdatatable'})
+    tr = table[2].find_all('tr')
     
     # 道瓊工業指數
-    INDU = data3[2].find_all('td')
-    INDU_Price = string_to_nums(INDU[1].text)    # 指數
+    INDU = tr[2].find_all('td')
+    INDU_Price = string_to_nums(INDU[2].text)    # 指數
     INDU_UDR = string_to_nums(INDU[3].text)      # 漲跌幅
-    
+ 
     # NASDAQ指數
-    NAS = data3[3].find_all('td')
-    NAS_Price = string_to_nums(NAS[1].text)    # 指數
+    NAS = tr[10].find_all('td')
+    NAS_Price = string_to_nums(NAS[2].text)    # 指數
     NAS_UDR = string_to_nums(NAS[3].text)      # 漲跌幅
     
     # S%P500指數
-    SP500 = data3[5].find_all('td')
-    SP500_Price = string_to_nums(SP500[1].text)    # 指數
+    SP500 = tr[4].find_all('td')
+    SP500_Price = string_to_nums(SP500[2].text)    # 指數
     SP500_UDR = string_to_nums(SP500[3].text)      # 漲跌幅
     
     # 費城半導體指數
-    SOX = data3[18].find_all('td')
-    SOX_Price = string_to_nums(SOX[1].text)    # 指數
+    SOX = tr[11].find_all('td')
+    SOX_Price = string_to_nums(SOX[2].text)    # 指數
     SOX_UDR = string_to_nums(SOX[3].text)      # 漲跌幅
 
     
@@ -151,33 +150,29 @@ def USD_NTD(yyyy, mm, dd):
     html = get_url(url)
     
     soup = BeautifulSoup(html, 'html.parser')
-    data1 = soup.find_all('tr', {'align':'center'})
-    data2 = data1[8].find_all('td', {'valign':'top'})
-    data3 = data2[1].find_all('tr')
-    
-    USD_data1 =  data3[17].find_all('td')
-    USDEx = string_to_nums(USD_data1[1].text)
-    USDEx_UD = string_to_nums(USD_data1[2].text)
+    table = soup.find_all('table', {'class':'marketdatatable'})
+    tr = table[6].find_all('tr')
 
+    USDEx = string_to_nums(tr[17].find_all('td')[1].text)
+    USDEx_UD = string_to_nums(tr[17].find_all('td')[2].text)
+    
 
 # 期貨未平倉
 def TWFU(yyyy, mm, dd):
-    url = "http://www.taifex.com.tw/chinese/3/7_12_3.asp"
-    payloads = {"syear":yyyy, "smonth":mm, "sday":dd}
+    url = "https://www.taifex.com.tw/cht/3/futContractsDate"
+    payloads = {"queryType":1, "doQuery":1, "queryDate":yyyy+ '/' + mm + '/' + dd}
     html = post_url(url, payloads)
     
     soup = BeautifulSoup(html, 'html.parser')
-    data1 = soup.find_all('div', {'class':'container clearfix page'})
-    data2 = data1[0].find_all('div', {'class':'section'})
-    data3 = data2[2].find_all('tr', {'class':'12bk'})
+    tr = soup.find_all('tr', {'class':'12bk'})
     
     # 台指期
-    TX_data = data3[5].find_all('td')
-    TX = string_to_nums(TX_data[11].text)
+    TX_data = tr[5].find_all('td')
+    TX = string_to_nums(TX_data[7].text)
     
     # 小台指
-    MTX_data = data3[14].find_all('td')
-    MTX = string_to_nums(MTX_data[11].text)
+    MTX_data = tr[14].find_all('td')
+    MTX = string_to_nums(MTX_data[7].text)
     
     FU = TX + MTX/4.0
     
@@ -198,53 +193,51 @@ def TWFUOC(yyyy, mm, dd):
 def TWF_5_10_UOC(yyyy, mm, dd):
     global TM_5_Bull, TM_10_Bull, ALL_5_Bull, ALL_10_Bull
     
-    url = "http://www.taifex.com.tw/chinese/3/7_8.asp"
-    payloads = {"choose_yy":yyyy, "choose_mm":mm, "choose_dd":dd}
+    url = "https://www.taifex.com.tw/cht/3/largeTraderFutQry"
+    payloads = {"queryDate":yyyy+ '/' + mm + '/' + dd, "contractId":"TX"}
     html = post_url(url, payloads)
     
     soup = BeautifulSoup(html, 'html.parser')
-    data1 = soup.find_all('div', {'class':'container clearfix page'})
-    data2 = data1[0].find_all('div', {'class':'section'})
-    data3 = data2[1].find_all('table', {'class':'table_f'})
-    data4 = data3[0].find_all('tr')
-    TM_data = data4[4].find_all('td')
-    ALL_data = data4[5].find_all('td')
+    table = soup.find_all('table')
+    table_f = table[2].find_all('table', {'class':'table_f'})
+    tr = table_f[0].find_all('tr')
     
-    TM_5_Bull = int(string_to_nums(TM_data[1].text) - string_to_nums(TM_data[5].text))
-    TM_10_Bull = int(string_to_nums(TM_data[3].text) - string_to_nums(TM_data[7].text))
-    ALL_5_Bull = int(string_to_nums(ALL_data[1].text) - string_to_nums(ALL_data[5].text))
-    ALL_10_Bull = int(string_to_nums(ALL_data[3].text) - string_to_nums(ALL_data[7].text))
-
-
+    TM_data = tr[4].find_all('td', {'class':'11b'})
+    ALL_data = tr[5].find_all('td', {'class':'11b'})
+    
+    TM_5_Bull = int(string_to_nums(TM_data[1].text.split(' ')[1]) - string_to_nums(TM_data[5].text.split(' ')[1]))
+    TM_10_Bull = int(string_to_nums(TM_data[3].text.split(' ')[1]) - string_to_nums(TM_data[7].text.split(' ')[1]))
+    ALL_5_Bull = int(string_to_nums(ALL_data[1].text.split(' ')[1]) - string_to_nums(ALL_data[5].text.split(' ')[1]))
+    ALL_10_Bull = int(string_to_nums(ALL_data[3].text.split(' ')[1]) - string_to_nums(ALL_data[7].text.split(' ')[1]))
+    
+    
 # 小台散戶多空比
 def TWMTX(yyyy, mm, dd):
     global RIBS_Ratio
     # 小台全部留倉
-    url = "http://www.taifex.com.tw/chinese/3/3_1_1.asp"
-    payloads = {"qtype":"2", "commodity_id":"MTX", "market_code":"0", "syear":yyyy, "smonth":mm, "sday":dd}
+    url = "https://www.taifex.com.tw/cht/3/futDailyMarketReport"
+    payloads = {"queryType":2, "marketCode":0, "commodity_id":"MTX", "queryDate":yyyy+ '/' + mm + '/' + dd,"MarketCode": 0,"commodity_idt": "MTX"}
     html_RI = post_url(url, payloads)
     
-    soup = BeautifulSoup(html_RI, 'html.parser')
-    data1 = soup.find_all('div', {'class':'container clearfix page'})
-    data2 = data1[0].find_all('div', {'class':'section'})
-    data3 = data2[1].find_all('table', {'class':'table_f'})
-    data4 = data3[0].find_all('tr', {'bgcolor':'#CFDFEF'})
-    data5 = data4[2].find_all('td', {'align':'right'})
-    MTXO = string_to_nums(data5[3].text)
+    soup_I = BeautifulSoup(html_RI, 'html.parser')
+    table_f_I = soup_I.find_all('table', {'class': 'table_f'})
+    tr_I = table_f_I[0].find_all('tr')
+    td_I = tr_I[2].find_all('td' , {'class': '12bk'})
+    
+    MTXO = string_to_nums(td_I[10].text)
     
     # 三大法人留倉
-    url_II = "http://www.taifex.com.tw/chinese/3/7_12_3.asp"
-    payloads_II = {"syear":yyyy, "smonth":mm, "sday":dd}
+    url_II = "https://www.taifex.com.tw/cht/3/futContractsDate"
+    payloads_II = {"queryType":1,"doQuery":1,"queryDate":yyyy+ '/' + mm + '/' + dd,"commodityId":"MXF"}
     html_II = post_url(url_II, payloads_II)
     
     soup_II = BeautifulSoup(html_II, 'html.parser')
-    data1_II = soup_II.find_all('div', {'class':'container clearfix page'})
-    data2_II = data1_II[0].find_all('div', {'class':'section'})
-    data3_II = data2_II[2].find_all('tr', {'class':'12bk'})
+    table_f_II = soup_II.find_all('table', {'class': 'table_f'})
+    tr_II = table_f_II[0].find_all('tr', {'class': '12bk'})
     
-    SI_data = data3_II[12].find_all('td')    # 自營商
-    IT_data = data3_II[13].find_all('td')    # 投信
-    FI_data = data3_II[14].find_all('td')    # 外資
+    SI_data = tr_II[3].find_all('td')    # 自營商
+    IT_data = tr_II[4].find_all('td')    # 投信
+    FI_data = tr_II[5].find_all('td')    # 外資
     # 空 - 多
     SI_OC = string_to_nums(SI_data[11].text) - string_to_nums(SI_data[9].text)  
     IT_OC = string_to_nums(IT_data[9].text) - string_to_nums(IT_data[7].text)
@@ -259,42 +252,42 @@ def TWMTX(yyyy, mm, dd):
 def TWOP(yyyy, mm, dd):
     global Buy_Call, Buy_Put
     
-    url = "http://www.taifex.com.tw/chinese/3/7_12_5.asp"
-    payloads = {"syear":yyyy, "smonth":mm, "sday":dd}
+    url = "https://www.taifex.com.tw/cht/3/optContractsDate"
+    payloads = {"queryType":1,"doQuery":1,"queryDate":yyyy+ '/' + mm + '/' + dd,"commodityId":"TXO"}
     html = post_url(url, payloads)
     
     soup = BeautifulSoup(html, 'html.parser')
-    data1 = soup.find_all('div', {'class':'container clearfix page'})
-    data2 = data1[0].find_all('div', {'class':'section'})
-    data3 = data2[2].find_all('tr', {'class':'12bk'})
+    table_f = soup.find_all('table', {'class': 'table_f'})
+    tr = table_f[0].find_all('tr', {'class': '12bk'})
+    td = tr[5].find_all('td')
     
     # 買進買權
-    Buy_Call_data = data3[5].find_all('td')
-    Buy_Call = string_to_nums(Buy_Call_data[-1].text)/100000
+    #Buy_Call_data = data3[5].find_all('td')
+    Buy_Call = string_to_nums(td[8].text)/100000
     Buy_Call = "%.2f" % Buy_Call
     
     # 買進賣權
-    Buy_Put_data = data3[8].find_all('td')
-    Buy_Put = string_to_nums(Buy_Put_data[-1].text)/100000
+    #Buy_Put_data = data3[8].find_all('td')
+    Buy_Put = string_to_nums(td[10].text)/100000
     Buy_Put = "%.2f" % Buy_Put
-
+    
 
 # 選擇權 P/C Ratio
 def TWPCR(yyyy, mm, dd):
     global PC_Ratio 
-    url = "http://www.taifex.com.tw/chinese/3/PCRatio.asp"
-    payloads = {"datestart":yyyy + "/" + mm + "/" + dd, "dateend":yyyy + "/" + mm + "/" + dd}
+    url = "https://www.taifex.com.tw/cht/3/pcRatio"
+    payloads = {"queryStartDate":yyyy + "/" + mm + "/" + dd, "queryEndDate":yyyy + "/" + mm + "/" + dd}
     html = post_url(url, payloads)
     
     soup = BeautifulSoup(html, 'html.parser')
-    data1 = soup.find_all('div', {'class':'container clearfix page'})
-    data2 = data1[0].find_all('div', {'class':'section'})
-    data3 = data2[1].find_all('table', {'class':'table_a'})
-    data4 = data3[0].find_all('tr')
-    PC_Ratio_data = data4[1].find_all('td')
+    table_a = soup.find_all('table', {'class':'table_a'})
+    tr = table_a[0].find_all('tr')
+    td = tr[1].find_all('td')
     
     # P/C Ratio
-    PC_Ratio = string_to_nums(PC_Ratio_data[-1].text)
+    PC_Ratio = string_to_nums(td[-1].text)
+    
+    print(PC_Ratio)
 
 
 # 期貨結算日資訊
