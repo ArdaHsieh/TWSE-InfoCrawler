@@ -131,7 +131,7 @@ def USASEx(yyyy, mm, dd):
     NAS_Price = string_to_nums(NAS[2].text)    # 指數
     NAS_UDR = string_to_nums(NAS[3].text)      # 漲跌幅
     
-    # S%P500指數
+    # S%P500指數 
     SP500 = tr[4].find_all('td')
     SP500_Price = string_to_nums(SP500[2].text)    # 指數
     SP500_UDR = string_to_nums(SP500[3].text)      # 漲跌幅
@@ -222,9 +222,14 @@ def TWMTX(yyyy, mm, dd):
     soup_I = BeautifulSoup(html_RI, 'html.parser')
     table_f_I = soup_I.find_all('table', {'class': 'table_f'})
     tr_I = table_f_I[0].find_all('tr')
-    td_I = tr_I[2].find_all('td' , {'class': '12bk'})
     
-    MTXO = string_to_nums(td_I[10].text)
+    for i in range(1, 6):    
+        td_I = tr_I[i].find_all('td' , {'class': '12bk'})
+        if ('W' not in td_I[1].text):
+            MTXO = string_to_nums(td_I[10].text)
+            break
+    
+    print(MTXO)
     
     # 三大法人留倉
     url_II = "https://www.taifex.com.tw/cht/3/futContractsDate"
@@ -243,6 +248,8 @@ def TWMTX(yyyy, mm, dd):
     IT_OC = string_to_nums(IT_data[9].text) - string_to_nums(IT_data[7].text)
     FI_OC = string_to_nums(FI_data[9].text) - string_to_nums(FI_data[7].text)
     MTX_II_OC = SI_OC + IT_OC + FI_OC
+    
+    print(string_to_nums(FI_data[9].text), string_to_nums(FI_data[7].text))
     
     RIBS_Ratio = (MTX_II_OC/MTXO)*100  
     RIBS_Ratio = "%.2f" % RIBS_Ratio
