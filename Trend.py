@@ -168,11 +168,11 @@ def TWFU(yyyy, mm, dd):
     
     # 台指期
     TX_data = tr[5].find_all('td')
-    TX = string_to_nums(TX_data[7].text)
+    TX = string_to_nums(TX_data[11].text)
     
     # 小台指
     MTX_data = tr[14].find_all('td')
-    MTX = string_to_nums(MTX_data[7].text)
+    MTX = string_to_nums(MTX_data[11].text)
     
     FU = TX + MTX/4.0
     
@@ -222,14 +222,8 @@ def TWMTX(yyyy, mm, dd):
     soup_I = BeautifulSoup(html_RI, 'html.parser')
     table_f_I = soup_I.find_all('table', {'class': 'table_f'})
     tr_I = table_f_I[0].find_all('tr')
-    
-    for i in range(1, 6):    
-        td_I = tr_I[i].find_all('td' , {'class': '12bk'})
-        if ('W' not in td_I[1].text):
-            MTXO = string_to_nums(td_I[10].text)
-            break
-    
-    print(MTXO)
+    td_I = tr_I[-1].find_all('td' , {'class': '12bk'})
+    MTXO = string_to_nums(td_I[4].text)
     
     # 三大法人留倉
     url_II = "https://www.taifex.com.tw/cht/3/futContractsDate"
@@ -248,8 +242,6 @@ def TWMTX(yyyy, mm, dd):
     IT_OC = string_to_nums(IT_data[9].text) - string_to_nums(IT_data[7].text)
     FI_OC = string_to_nums(FI_data[9].text) - string_to_nums(FI_data[7].text)
     MTX_II_OC = SI_OC + IT_OC + FI_OC
-    
-    print(string_to_nums(FI_data[9].text), string_to_nums(FI_data[7].text))
     
     RIBS_Ratio = (MTX_II_OC/MTXO)*100  
     RIBS_Ratio = "%.2f" % RIBS_Ratio
@@ -352,6 +344,8 @@ def Disp(yyyy, mm, dd):
     print("前10大交易人留倉部位(所有): {}".format(ALL_10_Bull))
     print("前5大交易人留倉部位(當月): {}".format(TM_5_Bull))
     print("前10大交易人留倉部位(當月): {}".format(TM_10_Bull))
+    print("前5大交易人未來指標(所有-當月): {}".format(str(int(ALL_5_Bull)-int(TM_5_Bull))))
+    print("前10大交易人未來指標(所有-當月): {}".format(str(int(ALL_10_Bull)-int(TM_10_Bull))))
     print("外資選擇權未平倉金額(買權/賣權): {}億/{}億".format(Buy_Call, Buy_Put))
     print("選擇權 P/C Ratio 未平倉量: {}".format(PC_Ratio))
     print("散戶多空比: {}%".format(RIBS_Ratio))
@@ -424,14 +418,16 @@ def Excel(yyyy, mm, dd):
     file_name = "Stock Analysis.xlsx"
     stock_data = [date, str(TWSE_Price), str(TWSE_UD), str(TWSE_UDR) + " %", str(TWSE_Vol) + " 億", str(TWSE_FBS) + " 億", str(INDU_Price), str(INDU_UDR) + " %",
                   str(NAS_Price), str(NAS_UDR) + " %",  str(SP500_Price), str(SP500_UDR) + " %",  str(SOX_Price), str(SOX_UDR) + " %", str(USDEx), str(USDEx_UD), 
-                  str(FU), str(DueFu), str(ALL_5_Bull), str(ALL_10_Bull), str(TM_5_Bull), str(TM_10_Bull), str(Buy_Call) + "/" + str(Buy_Put), str(PC_Ratio), str(RIBS_Ratio) + "%"]
+                  str(FU), str(DueFu), str(ALL_5_Bull), str(ALL_10_Bull), str(TM_5_Bull), str(TM_10_Bull),
+                  str(int(ALL_5_Bull)-int(TM_5_Bull)), str(int(ALL_10_Bull)-int(TM_10_Bull)),
+                  str(Buy_Call) + " / " + str(Buy_Put), str(PC_Ratio), str(RIBS_Ratio) + "%"]
 
     if not os.path.exists(file_name):
         header = ["日期", 
                   "加權指數", "漲跌", "漲跌幅", "成交量", "外資買賣超", 
                   "道瓊工業指數", "漲跌幅", "Nasdaq指數", "漲跌幅", "S&P 500指數", "漲跌幅", "費城半導體指數", "漲跌幅", 
                   "新台幣匯率", "漲跌幅", 
-                  "外資期貨未平倉口數", "與結算日相比", "前5大交易人留倉部位(所有)", "前10大交易人留倉部位(所有)", "前5大交易人留倉部位(當月)", "前10大交易人留倉部位(當月)",
+                  "外資期貨未平倉口數", "與結算日相比", "前5大交易人留倉部位(所有)", "前10大交易人留倉部位(所有)", "前5大交易人留倉部位(當月)", "前10大交易人留倉部位(當月)", "前5大交易人未來指標(所有-當月)", "前10大交易人未來指標(所有-當月)",
                   "外資選擇權未平倉金額(買權/賣權)", "P/C Ratio 未平倉量", 
                   "散戶多空比"]
         wb = Workbook()
