@@ -114,32 +114,45 @@ def TWSE(yyyy, mm, dd):
 def USASEx(yyyy, mm, dd):
     global INDU_Price, INDU_UDR, NAS_Price, NAS_UDR, SP500_Price, SP500_UDR, SOX_Price, SOX_UDR
     
-    url = "http://www.stockq.org/stock/history/" + yyyy +"/" + mm + "/" + yyyy + mm + dd + "_tc.php"
-    html = get_url(url)
+    f = open('USEQ_Date.txt', 'r')
+    dates = [date.rstrip() for date in f.readlines()]
     
-    soup = BeautifulSoup(html, 'html.parser')
-    table = soup.find_all('table', {'class':'marketdatatable'})
-    tr = table[2].find_all('tr')
+    if (yyyy + '/' + mm + '/' + dd) in dates:
+        INDU_Price = '休市'
+        INDU_UDR = 0
+        NAS_Price = '休市'
+        NAS_UDR = 0
+        SP500_Price = '休市'
+        SP500_UDR = 0
+        SOX_Price = '休市'
+        SOX_UDR = 0
+    else:
+        url = "http://www.stockq.org/stock/history/" + yyyy +"/" + mm + "/" + yyyy + mm + dd + "_tc.php"
+        html = get_url(url)
     
-    # 道瓊工業指數
-    INDU = tr[2].find_all('td')
-    INDU_Price = string_to_nums(INDU[2].text)    # 指數
-    INDU_UDR = string_to_nums(INDU[3].text)      # 漲跌幅
+        soup = BeautifulSoup(html, 'html.parser')
+        table = soup.find_all('table', {'class':'marketdatatable'})
+        tr = table[2].find_all('tr')
+    
+        # 道瓊工業指數
+        INDU = tr[2].find_all('td')
+        INDU_Price = string_to_nums(INDU[2].text)    # 指數
+        INDU_UDR = string_to_nums(INDU[3].text)      # 漲跌幅
  
-    # NASDAQ指數
-    NAS = tr[10].find_all('td')
-    NAS_Price = string_to_nums(NAS[2].text)    # 指數
-    NAS_UDR = string_to_nums(NAS[3].text)      # 漲跌幅
+        # NASDAQ指數
+        NAS = tr[10].find_all('td')
+        NAS_Price = string_to_nums(NAS[2].text)    # 指數
+        NAS_UDR = string_to_nums(NAS[3].text)      # 漲跌幅
     
-    # S%P500指數 
-    SP500 = tr[4].find_all('td')
-    SP500_Price = string_to_nums(SP500[2].text)    # 指數
-    SP500_UDR = string_to_nums(SP500[3].text)      # 漲跌幅
+        # S&P500指數 
+        SP500 = tr[4].find_all('td')
+        SP500_Price = string_to_nums(SP500[2].text)    # 指數
+        SP500_UDR = string_to_nums(SP500[3].text)      # 漲跌幅
     
-    # 費城半導體指數
-    SOX = tr[11].find_all('td')
-    SOX_Price = string_to_nums(SOX[2].text)    # 指數
-    SOX_UDR = string_to_nums(SOX[3].text)      # 漲跌幅
+        # 費城半導體指數
+        SOX = tr[11].find_all('td')
+        SOX_Price = string_to_nums(SOX[2].text)    # 指數
+        SOX_UDR = string_to_nums(SOX[3].text)      # 漲跌幅
 
     
 # 美金匯率
@@ -285,8 +298,6 @@ def TWPCR(yyyy, mm, dd):
     
     # P/C Ratio
     PC_Ratio = string_to_nums(td[-1].text)
-    
-    print(PC_Ratio)
 
 
 # 期貨結算日資訊

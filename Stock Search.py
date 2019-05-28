@@ -448,8 +448,8 @@ def OC_Same_Diff_way():
     global FO_same_IT_OC_NBuy, FO_same_IT_OC_NSell, FO_diff_IT_OC_NBuy, FO_diff_IT_OC_NSell
     global IT_same_FO_OC_NBuy, IT_same_FO_OC_NSell, IT_diff_FO_OC_NBuy, IT_diff_FO_OC_NSell
     
-    FO_same_IT_OC_NBuy, FO_same_IT_OC_NSell, FO_diff_IT_OC_NBuy, FO_diff_IT_OC_NSell = FO_IT_Same_Diff(FO_OC_NBuy, FO_OC_NSell, IT_OC_NBuy, IT_SE_NSell)
-    IT_same_FO_OC_NBuy, IT_same_FO_OC_NSell, IT_diff_FO_OC_NBuy, IT_diff_FO_OC_NSell = FO_IT_Same_Diff(IT_OC_NBuy, IT_OC_NSell, FO_OC_NBuy, FO_SE_NSell)
+    FO_same_IT_OC_NBuy, FO_same_IT_OC_NSell, FO_diff_IT_OC_NBuy, FO_diff_IT_OC_NSell = FO_IT_Same_Diff(FO_OC_NBuy, FO_OC_NSell, IT_OC_NBuy, IT_OC_NSell)
+    IT_same_FO_OC_NBuy, IT_same_FO_OC_NSell, IT_diff_FO_OC_NBuy, IT_diff_FO_OC_NSell = FO_IT_Same_Diff(IT_OC_NBuy, IT_OC_NSell, FO_OC_NBuy, FO_OC_NSell)
     
 
 # 所有上櫃個股資料
