@@ -1,3 +1,4 @@
+#!/usr/bin/python
 # -*- coding: utf-8 -*-
 """
 Created on Tue Nov 28 2017
@@ -10,8 +11,11 @@ import json
 from bs4 import BeautifulSoup
 import os
 import time
+import random
+import pymysql
 from openpyxl import Workbook, load_workbook
 from openpyxl.styles import Font, colors
+
 
 
 TWSE_Price = 0        # 台股大盤指數
@@ -44,13 +48,30 @@ Tx_Due_mm = ""        # 期貨結算(月)
 Tx_Due_dd = ""        # 期貨結算(日)
 
 
+headers = {'user-agent': 'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36'}
+
+
+def get_proxies():
+    url_proxies = "https://free-proxy-list.net/"
+    html = requests.get(url_proxies, headers = headers).text.encode('utf-8-sig')
+    
+    soup = BeautifulSoup(html, 'html.parser')
+    tbody = soup.find_all('tbody')
+    tr = tbody[0].find_all('tr')
+    
+    x = random.randint(0, len(tr)-1)
+    
+    return tr[x].find_all('td')[0].text + ':' + tr[x].find_all('td')[1].text
+    
+    
 def get_url(url):
-    html = requests.get(url).text.encode('utf-8-sig')
+    html = requests.get(url, headers = headers).text
     
     return html
 
+
 def post_url(url, payloads):
-    html = requests.post(url, data = payloads).text.encode('utf-8-sig')
+    html = requests.post(url, headers = headers, data = payloads).text
     
     return html
 
@@ -72,22 +93,21 @@ def TWSE(yyyy, mm, dd):
     global TWSE_Price, TWSE_UD, TWSE_UDR, TWSE_Vol, TWSE_FBS
     
     # 大盤指數
-    url_TWSE = "http://www.twse.com.tw/exchangeReport/MI_INDEX?response=json&date=" + yyyy + mm + dd
+    url_TWSE = "https://www.twse.com.tw/exchangeReport/MI_INDEX?response=json&date=" + yyyy + mm + dd + "&type=IND&_=15"
     html_TWSE = get_url(url_TWSE)
-    TWSE_data1 = json.loads(html_TWSE)
-    TWSE_data2 = TWSE_data1['data1']
+    TWSE_data = json.loads(html_TWSE)['data1'][1]
     
-    TWSE_Price = string_to_nums(TWSE_data2[1][1])    # 加權指數
-    TWSE_UD = string_to_nums(TWSE_data2[1][3])       # 漲跌
+    TWSE_Price = string_to_nums(TWSE_data[1])        # 加權指數
+    TWSE_UD = string_to_nums(TWSE_data[3])           # 漲跌
     try:                                             # 漲跌幅
-        TWSE_UDR = string_to_nums(TWSE_data2[1][4])      
+        TWSE_UDR = string_to_nums(TWSE_data[4])      
     except:
         TWSE_UDR = 0.0
     if TWSE_UDR < 0:
         TWSE_UD = -TWSE_UD
     else:
         TWSE_UD = TWSE_UD
-    
+
     # 大盤成交量
     Voldate = str(int(yyyy)-1911) + "/" + mm + "/" + dd
     url_TWSE_Vol = "http://www.twse.com.tw/exchangeReport/FMTQIK?response=json&date=" + yyyy + mm + dd
@@ -108,7 +128,7 @@ def TWSE(yyyy, mm, dd):
     
     TWSE_FBS = string_to_nums(TWSE_Foreign_data2[3][3])/100000000
     TWSE_FBS = "%.2f" % TWSE_FBS
-    
+
 
 # 美股
 def USASEx(yyyy, mm, dd):
@@ -364,7 +384,7 @@ def Disp(yyyy, mm, dd):
 
 # Excel漲跌上色
 def Excel_color(Row_num):
-    file_name = "Stock Analysis.xlsx"
+    file_name = "./result_data/Stock_Analysis.xlsx"
     ftRed = Font(color = colors.RED)
     ftGreen = Font(color = colors.GREEN)
     
@@ -424,9 +444,12 @@ def Excel_color(Row_num):
     
 # 存到EXCEL檔中
 def Excel(yyyy, mm, dd):
+    if not os.path.isdir("./result_data/"):
+        os.mkdir("./result_data/")
+        
     date = yyyy + "/" + mm + "/" + dd
     
-    file_name = "Stock Analysis.xlsx"
+    file_name = "./result_data/Stock_Analysis.xlsx"
     stock_data = [date, str(TWSE_Price), str(TWSE_UD), str(TWSE_UDR) + " %", str(TWSE_Vol) + " 億", str(TWSE_FBS) + " 億", str(INDU_Price), str(INDU_UDR) + " %",
                   str(NAS_Price), str(NAS_UDR) + " %",  str(SP500_Price), str(SP500_UDR) + " %",  str(SOX_Price), str(SOX_UDR) + " %", str(USDEx), str(USDEx_UD), 
                   str(FU), str(DueFu), str(ALL_5_Bull), str(ALL_10_Bull), str(TM_5_Bull), str(TM_10_Bull),
@@ -452,7 +475,7 @@ def Excel(yyyy, mm, dd):
     else:
         date_data_list = []
         wb = load_workbook(file_name)
-        ws = wb.get_sheet_by_name("台股趨勢")
+        ws = wb["台股趨勢"]
         nrow = ws.max_row
         for i in range(2, nrow+1):
             date_data_list.append(ws.cell(row=i, column=1).value)
@@ -473,7 +496,79 @@ def Excel(yyyy, mm, dd):
             wsw.append(stock_data)
             wb.save(file_name)
             Excel_color(nrow+1)
+
+# 存到DB中
+def DB(yyyy, mm, dd):
+    global INDU_Price, INDU_UDR, NAS_Price, NAS_UDR, SP500_Price, SP500_UDR, SOX_Price, SOX_UDR, DueFu
+
+    db = pymysql.connect("127.0.0.1","root", '',"stock" )
+    cursor = db.cursor()
         
+    date = yyyy + "-" + mm + "-" + dd
+    
+    query = "SELECT * FROM trend WHERE Date = %s"
+    cursor.execute(query, (date))
+
+    if INDU_Price == '休市':
+        INDU_Price = 999999999
+        INDU_UDR = 999999999
+        NAS_Price = 999999999
+        NAS_UDR = 999999999
+        SP500_Price = 999999999
+        SP500_UDR = 999999999
+        SOX_Price = 999999999
+        SOX_UDR = 999999999
+    elif DueFu == '結算日':
+        DueFu = 999999999
+    
+    if cursor.fetchone():
+        sql = "UPDATE trend SET \
+              TWSE_Price = '%s', TWSE_UD = '%s', TWSE_UDR = '%s', TWSE_Vol = '%s', \
+              TWSE_FBS = '%s', FU = '%s', DueFu = '%s', Buy_Call = '%s', Buy_Put = '%s', \
+              ALL_5_Bull = '%s', ALL_10_Bull = '%s', TM_5_Bull = '%s', TM_10_Bull = '%s', \
+              PC_Ratio = '%s', RIBS_Ratio = '%s', \
+              INDU_Price = '%s', INDU_UDR = '%s', NAS_Price = '%s', NAS_UDR = '%s', \
+              SP500_Price = '%s', SP500_UDR = '%s', SOX_Price = '%s', SOX_UDR = '%s', \
+              USD2NTDEx = '%s', USD2NTDEx_UD = '%s' WHERE Date = '%s'" % \
+              (float(TWSE_Price), float(TWSE_UD), float(TWSE_UDR), float(TWSE_Vol),
+               float(TWSE_FBS), float(FU), float(DueFu), float(Buy_Call), float(Buy_Put), 
+               float(ALL_5_Bull), float(ALL_10_Bull), float(TM_5_Bull), float(TM_10_Bull),
+               float(PC_Ratio), float(RIBS_Ratio),
+               float(INDU_Price), float(INDU_UDR), float(NAS_Price), float(NAS_UDR),
+               float(SP500_Price), float(SP500_UDR), float(SOX_Price), float(SOX_UDR),
+               float(USDEx), float(USDEx_UD), date)
+    else:
+        sql = "INSERT INTO trend \
+              (Date, \
+               TWSE_Price, TWSE_UD, TWSE_UDR, TWSE_Vol, \
+               TWSE_FBS, FU, DueFu, Buy_Call, Buy_Put, \
+               ALL_5_Bull, ALL_10_Bull, TM_5_Bull, TM_10_Bull, \
+               PC_Ratio, RIBS_Ratio, \
+               INDU_Price, INDU_UDR, NAS_Price, NAS_UDR, \
+               SP500_Price, SP500_UDR, SOX_Price, SOX_UDR, \
+               USD2NTDEx, USD2NTDEx_UD) \
+               VALUES ('%s', '%s', %s, '%s', %s, '%s', '%s', %s, '%s', %s, \
+                       '%s', '%s', %s, '%s', %s, '%s', '%s', %s, '%s', %s, \
+                       '%s', '%s', %s, '%s', %s, '%s')" % \
+              (date,
+               float(TWSE_Price), float(TWSE_UD), float(TWSE_UDR), float(TWSE_Vol),
+               float(TWSE_FBS), float(FU), float(DueFu), float(Buy_Call), float(Buy_Put), 
+               float(ALL_5_Bull), float(ALL_10_Bull), float(TM_5_Bull), float(TM_10_Bull),
+               float(PC_Ratio), float(RIBS_Ratio),
+               float(INDU_Price), float(INDU_UDR), float(NAS_Price), float(NAS_UDR),
+               float(SP500_Price), float(SP500_UDR), float(SOX_Price), float(SOX_UDR),
+               float(USDEx), float(USDEx_UD))
+
+    try:
+        cursor.execute(sql)
+        db.commit()
+    except Exception as e:
+        db.rollback()
+        print(e)
+    
+    db.close()
+
+
 # Menu
 def Menu():
     print(" ")
@@ -544,6 +639,7 @@ def main():
                 choiceSave = input("\n是否儲存資料？(Y/N): ")
                 if choiceSave == "Y" or choiceSave == "y":
                     Excel(yyyy, mm, dd)
+                    DB(yyyy, mm, dd)
         else:
             break
 
